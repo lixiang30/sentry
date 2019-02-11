@@ -31,7 +31,7 @@ from sentry.models import (
     Activity, Environment, Event, EventError, EventMapping, Group, Organization, OrganizationMember,
     OrganizationMemberTeam, Project, ProjectBookmark, Team, User, UserEmail, Release, Commit, ReleaseCommit,
     CommitAuthor, Repository, CommitFileChange, ProjectDebugFile, File, UserPermission, EventAttachment,
-    UserReport
+    UserReport, SentryAppComponent,
 )
 from sentry.utils.canonical import CanonicalKeyDict
 
@@ -751,6 +751,9 @@ class Fixtures(object):
             'scopes': scopes,
             'webhook_url': webhook_url,
             'events': [],
+            'schema': json.dumps({
+                'elements': [self.create_issue_link_schema()],
+            }),
         }
 
         _kwargs.update(kwargs)
@@ -773,6 +776,83 @@ class Fixtures(object):
             organization=organization,
             user=(user or self.create_user()),
         )
+
+    def create_sentry_app_component(self, type, *args, **kwargs):
+        if type == 'issue-link':
+            return self.create_issue_link_component()
+        elif type == 'alert-rule-action':
+            return self.create_alert_rule_action_component()
+
+    def create_issue_link_schema(self):
+        return {
+            'type': 'issue-link',
+            'link': {
+                'uri': '/sentry/issues/link',
+                'required_fields': [
+                    {
+                        'type': 'select',
+                        'name': 'assignee',
+                        'label': 'Assignee',
+                        'uri': '/sentry/members',
+                    },
+                ],
+            },
+
+            'create': {
+                'uri': '/sentry/issues/create',
+                'required_fields': [
+                    {
+                        'type': 'text',
+                        'name': 'title',
+                        'label': 'Title',
+                    },
+                    {
+                        'type': 'text',
+                        'name': 'summary',
+                        'label': 'Summary',
+                    },
+                ],
+
+                'optional_fields': [
+                    {
+                        'type': 'select',
+                        'name': 'points',
+                        'label': 'Points',
+                        'options': [
+                            ['1', '1'],
+                            ['2', '2'],
+                            ['3', '3'],
+                            ['5', '5'],
+                            ['8', '8'],
+                        ],
+                    },
+                    {
+                        'type': 'select',
+                        'name': 'assignee',
+                        'label': 'Assignee',
+                        'uri': '/sentry/members',
+                    },
+                ],
+            },
+        }
+
+    def create_alert_rule_action_schema(self):
+        return {
+            'type': 'alert-rule-action',
+            'required_fields': [{
+                'type': 'text',
+                'name': 'channel',
+                'label': 'Channel',
+            }],
+        }
+
+    def create_issue_link_component(self, *args, **kwargs):
+        data = {
+            'type': 'issue-link',
+            'schema': json.dumps(self.create_issue_link_schema()),
+        }
+        data.update(**kwargs)
+        return SentryAppComponent.objects.create(**data)
 
     def create_service_hook(self, actor=None, org=None, project=None,
                             events=None, url=None, **kwargs):
