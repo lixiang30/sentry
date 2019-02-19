@@ -23,6 +23,7 @@ const validHookNames = new Set([
   'component:org-auth-view',
   'component:org-members-view',
   'sidebar:power',
+  'sidebar:power-icon',
 
   // Additional settings
   'settings:organization-navigation',
