@@ -331,18 +331,29 @@ const BadgeWrapper = styled('div')`
   overflow: hidden;
 `;
 
-const BadgeAndBookmark = styled('div')`
-  display: flex;
-  flex-shrink: 1;
-  padding-right: ${space(3)};
-  overflow: hidden;
-  align-items: center;
-  height: 100%;
-`;
-
 const IdBadgeMenuItem = styled(IdBadge)`
   flex: 1;
   overflow: hidden;
+  user-select: none;
+`;
+
+const BadgeAndBookmark = styled('div')`
+  display: flex;
+  flex-shrink: 1;
+  padding-right: ${space(4)};
+  overflow: hidden;
+  align-items: center;
+  height: 100%;
+
+  &:hover ${IdBadgeMenuItem} {
+    text-decoration: underline;
+    color: ${p => p.theme.blue};
+  }
+`;
+
+const MultiSelect = styled(CheckboxFancy)`
+  flex-shrink: 0;
+  transition: 0.2s transform;
 `;
 
 const MultiSelectWrapper = styled('div')`
@@ -353,10 +364,10 @@ const MultiSelectWrapper = styled('div')`
   flex-grow: 1;
   justify-content: flex-end;
   align-items: center;
-`;
 
-const MultiSelect = styled(CheckboxFancy)`
-  flex-shrink: 0;
+  &:hover ${MultiSelect} {
+    transform: scale(1.1);
+  }
 `;
 
 const ManageButton = styled(Button)`
@@ -365,6 +376,7 @@ const ManageButton = styled(Button)`
   box-shadow: none;
   border: 0;
   background: ${p => p.theme.offWhite2};
+  transition: 0.2s transform;
 
   &:hover,
   &:active,
