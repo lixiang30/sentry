@@ -136,6 +136,11 @@ def devserver(reload, watchers, workers, browser_reload, styleguide, prefix, env
             ('cron', ['sentry', 'run', 'cron', '--autoreload']),
         ]
 
+        if 'kafka' in settings.SENTRY_EVENTSTREAM:
+            daemons += [
+                ('relay', ['sentry', 'run', 'relay', '--loglevel=debug', '--commit-batch-size=1']),
+            ]
+
     if needs_https and has_https:
         https_port = six.text_type(parsed_url.port)
         https_host = parsed_url.hostname

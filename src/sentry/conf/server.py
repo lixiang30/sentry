@@ -1323,6 +1323,75 @@ SENTRY_WATCHERS = (
     ),
 )
 
+SENTRY_DEVSERVICES = {
+    'redis': {
+        'image': 'redis:5.0-alpine',
+        'ports': {'6379/tcp': 6379},
+        'volumes': {
+            'redis': {'bind': '/data'},
+        }
+    },
+    'postgres': {
+        'image': 'postgres:9.6-alpine',
+        'ports': {'5432/tcp': 5432},
+        'environment': {
+            'POSTGRES_DB': 'sentry',
+        },
+        'volumes': {
+            'postgres': {'bind': '/var/lib/postgresql/data'},
+        },
+    },
+    'zookeeper': {
+        'image': 'confluentinc/cp-zookeeper:5.1.0',
+        'environment': {
+            'ZOOKEEPER_CLIENT_PORT': '2181',
+        },
+        'volumes': {
+            'zookeeper': {'bind': '/var/lib/zookeeper'},
+        },
+    },
+    'kafka': {
+        'image': 'confluentinc/cp-kafka:5.1.0',
+        'ports': {'9092/tcp': 9092},
+        'environment': {
+            'KAFKA_ZOOKEEPER_CONNECT': '{containers[zookeeper][name]}:2181',
+            'KAFKA_ADVERTISED_LISTENERS': 'PLAINTEXT://127.0.0.1:{containers[kafka][ports][9092/tcp]}',
+            'KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR': '1',
+        },
+        'volumes': {
+            'kafka': {'bind': '/var/lib/kafka'},
+        },
+    },
+    'clickhouse': {
+        'image': 'yandex/clickhouse-server:19.3',
+        'ports': {
+            '9000/tcp': 9000,
+            '9009/tcp': 9009,
+            '8123/tcp': 8123,
+        },
+        'ulimits': [
+            {'name': 'nofile', 'soft': 262144, 'hard': 262144},
+        ],
+        'volumes': {
+            'clickhouse': {'bind': '/var/lib/clickhouse'},
+        },
+    },
+    'snuba': {
+        'image': 'getsentry/snuba:latest',
+        'pull': False,
+        'ports': {'1218/tcp': 1218},
+        'command': ['devserver'],
+        'environment': {
+            'SNUBA_SETTINGS': 'docker',
+            'CLICKHOUSE_SERVER': '{containers[clickhouse][name]}:{containers[clickhouse][ports][9000/tcp]}',
+            'DEFAULT_BROKERS': '{containers[kafka][name]}:{containers[kafka][ports][9092/tcp]}',
+            'REDIS_HOST': '{containers[redis][name]}',
+            'REDIS_PORT': '{containers[redis][ports][6379/tcp]}',
+            'REDIS_DB': '1',
+        },
+    },
+}
+
 # Max file size for avatar photo uploads
 SENTRY_MAX_AVATAR_SIZE = 5000000
 
